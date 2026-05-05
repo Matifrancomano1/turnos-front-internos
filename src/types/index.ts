@@ -69,4 +69,5 @@ export interface Dashboard { turnosHoy: number; turnosMes: number; turnosCancela
 
 // ── API ───────────────────────────────────────────────────────────────────────
 export interface ApiResponse<T> { status: string; message?: string; data: T; timestamp: string }
+export interface ErrorResponse { error: string; message: string; fields?: Record<string, string>; timestamp: string }
 export interface PageResponse<T> { content: T[]; page: number; size: number; totalElements: number; totalPages: number; last: boolean }

@@ -3,14 +3,36 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { authApi } from '@/api/client'
 import { cn } from '@/lib/utils'
+import {
+  LayoutDashboard,
+  CalendarDays,
+  CalendarClock,
+  FileText,
+  BarChart2,
+  Users,
+  Settings,
+  LogOut,
+  Link2,
+  Bell,
+  type LucideIcon,
+} from 'lucide-react'
 
-const navItems = [
-  { to: '/panel/dashboard',      icon: '📊', label: 'Dashboard' },
-  { to: '/panel/turnos',         icon: '📋', label: 'Turnos',        badge: '' },
-  { to: '/panel/agenda',         icon: '📅', label: 'Agenda' },
-  { to: '/panel/cotizaciones',   icon: '💰', label: 'Cotizaciones',  badge: '' },
-  { to: '/panel/reportes',       icon: '📈', label: 'Reportes' },
-  { to: '/panel/configuracion',  icon: '⚙️', label: 'Configuración' },
+type NavItem = {
+  to: string
+  icon: LucideIcon
+  label: string
+  badge?: boolean
+  roles: string[]
+}
+
+const navItems: NavItem[] = [
+  { to: '/panel/dashboard',     icon: LayoutDashboard, label: 'Dashboard',     roles: ['ADMIN', 'OPERADOR'] },
+  { to: '/panel/turnos',        icon: CalendarDays,    label: 'Turnos',        badge: false, roles: ['ADMIN', 'OPERADOR'] },
+  { to: '/panel/agenda',        icon: CalendarClock,   label: 'Agenda',        roles: ['ADMIN', 'OPERADOR'] },
+  { to: '/panel/cotizaciones',  icon: FileText,        label: 'Cotizaciones',  badge: false, roles: ['ADMIN', 'OPERADOR'] },
+  { to: '/panel/reportes',      icon: BarChart2,       label: 'Reportes',      roles: ['ADMIN'] },
+  { to: '/panel/usuarios',      icon: Users,           label: 'Usuarios',      roles: ['ADMIN'] },
+  { to: '/panel/configuracion', icon: Settings,        label: 'Configuración', roles: ['ADMIN'] },
 ]
 
 export default function PanelLayout() {
@@ -25,57 +47,64 @@ export default function PanelLayout() {
 
   const initials = usuario?.nombre?.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() ?? 'OP'
 
+  const mainItems = navItems.slice(0, 4).filter(i => !i.roles || i.roles.includes(usuario?.rol as string))
+  const adminItems = navItems.slice(4).filter(i => !i.roles || i.roles.includes(usuario?.rol as string))
+
   return (
     <div className="panel-layout">
       {/* ── Sidebar ── */}
       <aside className="sidebar">
         {/* Logo */}
-        <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid rgba(255,255,255,.1)' }}>
-          <span style={{ background: 'var(--blue)', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, letterSpacing: '.05em' }}>SaaS</span>
-          <h1 style={{ color: '#fff', fontSize: 17, fontWeight: 700, marginTop: 8, lineHeight: 1.2 }}>TurnoApp</h1>
-          <p style={{ color: '#93C5FD', fontSize: 11, marginTop: 2 }}>Gestión de Servicios Técnicos</p>
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-mark">T</div>
+          <div>
+            <h1 className="sidebar-brand">TurnoApp</h1>
+            <p className="sidebar-tagline">Gestión de Servicios</p>
+          </div>
         </div>
 
         {/* User */}
-        <div style={{ margin: '12px 14px', background: 'rgba(255,255,255,.08)', borderRadius: 'var(--radius)', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-            {initials}
-          </div>
-          <div>
-            <div style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>{usuario?.nombre ?? 'Usuario'}</div>
-            <div style={{ color: '#93C5FD', fontSize: 10 }}>{usuario?.rol}</div>
+        <div className="sidebar-user">
+          <div className="sidebar-avatar">{initials}</div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-username">{usuario?.nombre ?? 'Usuario'}</div>
+            <div className="sidebar-role">{usuario?.rol}</div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '8px 10px' }}>
-          <div style={{ marginBottom: 4 }}>
-            <div style={{ color: '#64748B', fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', padding: '0 8px', marginBottom: 4 }}>Principal</div>
-            {navItems.slice(0, 3).map(({ to, icon, label, badge }) => (
+        <nav className="sidebar-nav">
+          <div className="nav-section">
+            <div className="nav-section-label">Principal</div>
+            {mainItems.map(({ to, icon: Icon, label, badge }) => (
               <NavLink key={to} to={to} className={({ isActive }) => cn('nav-item', isActive && 'active')}>
-                <span style={{ fontSize: 15, width: 18, textAlign: 'center' }}>{icon}</span>
-                {label}
-                {badge !== undefined && <span style={{ marginLeft: 'auto', background: 'var(--red)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 10 }}>●</span>}
+                <Icon size={16} strokeWidth={1.75} />
+                <span>{label}</span>
+                {badge && <span className="nav-badge" />}
               </NavLink>
             ))}
           </div>
-          <div style={{ marginTop: 12 }}>
-            <div style={{ color: '#64748B', fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', padding: '0 8px', marginBottom: 4 }}>Gestión</div>
-            {navItems.slice(3).map(({ to, icon, label, badge }) => (
-              <NavLink key={to} to={to} className={({ isActive }) => cn('nav-item', isActive && 'active')}>
-                <span style={{ fontSize: 15, width: 18, textAlign: 'center' }}>{icon}</span>
-                {label}
-                {badge !== undefined && <span style={{ marginLeft: 'auto', background: 'var(--amber)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 10 }}>●</span>}
-              </NavLink>
-            ))}
-          </div>
+
+          {usuario?.rol === 'ADMIN' && adminItems.length > 0 && (
+            <div className="nav-section">
+              <div className="nav-section-label">Gestión</div>
+              {adminItems.map(({ to, icon: Icon, label, badge }) => (
+                <NavLink key={to} to={to} className={({ isActive }) => cn('nav-item', isActive && 'active')}>
+                  <Icon size={16} strokeWidth={1.75} />
+                  <span>{label}</span>
+                  {badge && <span className="nav-badge" />}
+                </NavLink>
+              ))}
+            </div>
+          )}
         </nav>
 
         {/* Footer */}
-        <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(255,255,255,.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: '#64748B', fontSize: 11 }}>v2.0.0</span>
-          <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#64748B', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
-            Salir →
+        <div className="sidebar-footer">
+          <span className="sidebar-version">v2.0.0</span>
+          <button onClick={handleLogout} className="sidebar-logout">
+            <LogOut size={13} strokeWidth={1.75} />
+            Salir
           </button>
         </div>
       </aside>
@@ -83,15 +112,20 @@ export default function PanelLayout() {
       {/* ── Main ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <header style={{ height: 'var(--header-h)', background: '#fff', borderBottom: '1px solid var(--gray-m)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12, flexShrink: 0 }}>
+        <header className="panel-header">
           <div style={{ flex: 1 }} />
-          <a href={`/solicitar/${usuario?.empresaId ?? 'demo'}`} target="_blank" rel="noreferrer"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 'var(--radius)', border: '1px solid var(--gray-m)', fontSize: 12, color: 'var(--text-m)', textDecoration: 'none', fontWeight: 500 }}>
-            🔗 Link de solicitud
+          <a
+            href={`/solicitar/${usuario?.empresaId ?? 'demo'}`}
+            target="_blank"
+            rel="noreferrer"
+            className="header-link-btn"
+          >
+            <Link2 size={13} strokeWidth={1.75} />
+            Link de solicitud
           </a>
-          <button style={{ position: 'relative', width: 34, height: 34, borderRadius: '50%', background: 'var(--gray-l)', border: 'none', cursor: 'pointer', fontSize: 16 }}>
-            🔔
-            <span style={{ position: 'absolute', top: 5, right: 5, width: 8, height: 8, background: 'var(--red)', borderRadius: '50%', border: '2px solid #fff' }} />
+          <button className="header-notif-btn">
+            <Bell size={16} strokeWidth={1.75} />
+            <span className="notif-dot" />
           </button>
         </header>
 

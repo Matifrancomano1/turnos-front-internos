@@ -8,6 +8,7 @@ import { fmt$, fmtDate } from '@/lib/utils'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { toast } from 'sonner'
 import { format, subMonths } from 'date-fns'
+import { Download, CalendarDays, CheckCircle2, XCircle, DollarSign, BarChart3, TrendingUp, Trophy, Award, type LucideIcon } from 'lucide-react'
 
 export default function ReportesPage() {
   const { empresaId } = useAuthStore()
@@ -54,33 +55,38 @@ export default function ReportesPage() {
           <input value={desde} onChange={e => setDesde(e.target.value)} type="date" className="form-input" style={{ maxWidth: 150, fontSize: 12 }} />
           <span style={{ color: 'var(--text-l)', fontSize: 13 }}>a</span>
           <input value={hasta} onChange={e => setHasta(e.target.value)} type="date" className="form-input" style={{ maxWidth: 150, fontSize: 12 }} />
-          <button className="btn btn-secondary btn-sm" onClick={handleExport}>⬇ Excel</button>
+          <button className="btn btn-secondary btn-sm" onClick={handleExport}><Download size={13} strokeWidth={1.75} /> Excel</button>
         </div>
       </div>
 
       {isLoading ? <PageLoader /> : (
         <>
           {/* KPIs */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
-            {[
-              { label: 'Turnos del período', value: dash?.turnosMes ?? 0, icon: '📋', color: 'var(--blue)' },
-              { label: 'Finalizados', value: Math.max(0, (dash?.turnosMes ?? 0) - (dash?.turnosCancelados ?? 0)), icon: '✅', color: 'var(--green)' },
-              { label: 'Cancelados', value: dash?.turnosCancelados ?? 0, icon: '❌', color: 'var(--red)', sub: `${dash?.tasaCancelacion?.toFixed(1) ?? 0}%` },
-              { label: 'Ingresos estimados', value: fmt$(dash?.ingresosEstimados ?? 0), icon: '💰', color: 'var(--amber)' },
-            ].map(({ label, value, icon, color, sub }) => (
-              <div key={label} style={{ background: '#fff', borderRadius: 'var(--radius-l)', padding: '16px 18px', border: '1px solid var(--gray-m)' }}>
-                <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-m)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
-                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', marginTop: 4 }}>{value}</div>
-                {sub && <div style={{ fontSize: 11, color }}>{sub} tasa</div>}
+          {(() => {
+            const kpis: { label: string; value: string | number; Icon: LucideIcon; color: string; sub?: string }[] = [
+              { label: 'Turnos del período', value: dash?.turnosMes ?? 0, Icon: CalendarDays, color: 'var(--blue)' },
+              { label: 'Finalizados', value: Math.max(0, (dash?.turnosMes ?? 0) - (dash?.turnosCancelados ?? 0)), Icon: CheckCircle2, color: 'var(--green)' },
+              { label: 'Cancelados', value: dash?.turnosCancelados ?? 0, Icon: XCircle, color: 'var(--red)', sub: `${dash?.tasaCancelacion?.toFixed(1) ?? 0}% tasa` },
+              { label: 'Ingresos estimados', value: fmt$(dash?.ingresosEstimados ?? 0), Icon: DollarSign, color: 'var(--amber)' },
+            ]
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
+                {kpis.map(({ label, value, Icon, color, sub }) => (
+                  <div key={label} style={{ background: '#fff', borderRadius: 'var(--radius-l)', padding: '16px 18px', border: '1px solid var(--gray-m)', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', right: 14, top: 14, color, opacity: .2 }}><Icon size={20} strokeWidth={1.75} /></div>
+                    <div style={{ fontSize: 11, color: 'var(--text-m)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', marginTop: 4 }}>{value}</div>
+                    {sub && <div style={{ fontSize: 11, color: 'var(--text-m)', marginTop: 2 }}>{sub}</div>}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )
+          })()}
 
           {/* Charts */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
             <div className="card">
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>📊 Turnos por servicio</div>
+              <div className="card-title"><BarChart3 size={15} strokeWidth={1.75} style={{ color: 'var(--blue)' }} />Turnos por servicio</div>
               {barData.length === 0 ? (
                 <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-l)' }}>Sin datos</div>
               ) : (
@@ -97,7 +103,7 @@ export default function ReportesPage() {
             </div>
 
             <div className="card">
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>💵 Ingresos estimados por servicio</div>
+              <div className="card-title"><TrendingUp size={15} strokeWidth={1.75} style={{ color: 'var(--green)' }} />Ingresos por servicio</div>
               {barData.length === 0 ? (
                 <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-l)' }}>Sin datos</div>
               ) : (
@@ -116,7 +122,7 @@ export default function ReportesPage() {
 
           {/* Top servicios tabla */}
           <div className="table-wrap">
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--gray-m)', fontWeight: 700, fontSize: 14 }}>🏆 Ranking de servicios</div>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--gray-m)' }} className="card-title"><Trophy size={15} strokeWidth={1.75} style={{ color: 'var(--amber)' }} />Ranking de servicios</div>
             <table className="data-table">
               <thead><tr><th>Posición</th><th>Servicio</th><th>Cantidad</th><th>Ingresos estimados</th><th>Participación</th></tr></thead>
               <tbody>
@@ -124,7 +130,12 @@ export default function ReportesPage() {
                   const max = serviciosStat?.[0]?.cantidad ?? 1
                   return (
                     <tr key={i}>
-                      <td><span style={{ fontWeight: 700, color: i === 0 ? 'var(--amber)' : 'var(--text-m)', fontSize: 16 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}</span></td>
+                      <td>
+                        <span style={{ fontWeight: 700, color: i < 3 ? 'var(--amber)' : 'var(--text-m)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {i < 3 ? <Award size={16} /> : null}
+                          #{i + 1}
+                        </span>
+                      </td>
                       <td style={{ fontWeight: 600 }}>{s.nombre}</td>
                       <td>{s.cantidad}</td>
                       <td style={{ fontWeight: 700, color: 'var(--blue)' }}>{fmt$(s.ingresoTotal)}</td>

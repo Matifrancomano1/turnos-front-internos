@@ -1,40 +1,75 @@
 // src/api/client.ts
 import axios from 'axios'
+import type { ErrorResponse } from '@/types'
 
 const BASE = import.meta.env.VITE_API_URL ?? '/api/v1'
 
-export const client = axios.create({ baseURL: BASE, headers: { 'Content-Type': 'application/json' } })
+export const client = axios.create({ 
+  baseURL: BASE, 
+  headers: { 'Content-Type': 'application/json' } 
+})
 
+// ── 1. Interceptor de Petición (Inyección de Token y TenantGuard) ─────────────
 client.interceptors.request.use((cfg) => {
   const token = localStorage.getItem('accessToken')
-  if (token) cfg.headers.Authorization = `Bearer ${token}`
+  if (token) {
+    cfg.headers.Authorization = `Bearer ${token}`
+  }
   return cfg
 })
 
+// ── 2. Interceptor de Respuesta (Desempaquetado y Errores) ────────────────────
 client.interceptors.response.use(
-  (r) => r,
-  async (err) => {
-    const orig = err.config
-    if (err.response?.status === 401 && !orig._retry) {
+  (response) => {
+    // REGLA 1: Desempaquetado automático de ApiResponse
+    if (response.data && response.data.data !== undefined) {
+      return response.data.data
+    }
+    return response.data
+  },
+  async (error) => {
+    const orig = error.config
+
+    if (!error.response) {
+      return Promise.reject({ message: 'Error de conexión con el servidor.' } as ErrorResponse)
+    }
+
+    const status = error.response.status
+    const errorData = error.response.data as ErrorResponse
+
+    // REGLA 3: Refresh Token Automático
+    if (status === 401 && !orig._retry && orig.url !== '/auth/login' && orig.url !== '/auth/refresh') {
       orig._retry = true
       const rt = localStorage.getItem('refreshToken')
+      
       if (rt) {
         try {
-          const { data } = await axios.post(`${BASE}/auth/refresh`, { refreshToken: rt })
-          const tok = data.data.accessToken
-          localStorage.setItem('accessToken', tok)
-          orig.headers.Authorization = `Bearer ${tok}`
+          const res = await axios.post(`${BASE}/auth/refresh`, { refreshToken: rt })
+          const newToken = res.data.data.accessToken
+          
+          localStorage.setItem('accessToken', newToken)
+          orig.headers.Authorization = `Bearer ${newToken}`
+          
           return client(orig)
-        } catch { localStorage.clear(); window.location.href = '/panel/login' }
-      } else { localStorage.clear(); window.location.href = '/panel/login' }
+        } catch (refreshErr) {
+          localStorage.clear()
+          window.location.href = '/panel/login'
+          return Promise.reject(errorData)
+        }
+      } else {
+        localStorage.clear()
+        window.location.href = '/panel/login'
+      }
     }
-    return Promise.reject(err)
+
+    // REGLA 2: Manejo Centralizado de Errores
+    return Promise.reject(errorData)
   }
 )
 
 // ── src/api/services.ts ───────────────────────────────────────────────────────
 import type {
-  ApiResponse, PageResponse,
+  PageResponse,
   AuthResponse, LoginRequest,
   Empresa, EmpresaConfig, Servicio,
   Turno, TurnoSummary, TurnoEstado,
@@ -43,84 +78,88 @@ import type {
   SolicitudPublicaRequest, SolicitudPublicaResponse,
 } from '@/types'
 
-const u = <T>(r: { data: ApiResponse<T> }) => r.data.data
-
 // Auth
 export const authApi = {
-  login:   (b: LoginRequest) => client.post<ApiResponse<AuthResponse>>('/auth/login', b).then(u),
+  login:   (b: LoginRequest) => client.post<any, AuthResponse>('/auth/login', b),
   logout:  (rt: string) => client.post('/auth/logout', { refreshToken: rt }),
-  refresh: (rt: string) => client.post<ApiResponse<AuthResponse>>('/auth/refresh', { refreshToken: rt }).then(u),
-  me:      () => client.get<ApiResponse<any>>('/usuarios/me').then(u),
+  refresh: (rt: string) => client.post<any, AuthResponse>('/auth/refresh', { refreshToken: rt }),
+  me:      () => client.get<any, any>('/usuarios/me'),
 }
 
 // Público — sin auth
 export const publicApi = {
   getEmpresa: (slug: string) =>
-    client.get<ApiResponse<Empresa>>(`/public/empresas/${slug}`).then(u),
+    client.get<any, Empresa>(`/empresas/slug/${slug}`),
   getServicios: (slug: string) =>
-    client.get<ApiResponse<Servicio[]>>(`/public/empresas/${slug}/servicios`).then(u),
+    client.get<any, Servicio[]>(`/public/empresas/${slug}/servicios`),
   getDisponibilidad: (slug: string, fecha: string, servicioId?: string) =>
-    client.get<ApiResponse<{ fecha: string; slots: SlotDisponible[] }>>(`/public/empresas/${slug}/disponibilidad`, { params: { fecha, servicioId } }).then(u),
+    client.get<any, { fecha: string; slots: SlotDisponible[] }>(`/public/empresas/${slug}/disponibilidad`, { params: { fecha, servicioId } }),
   solicitarTurno: (slug: string, body: SolicitudPublicaRequest) =>
-    client.post<ApiResponse<SolicitudPublicaResponse>>(`/public/empresas/${slug}/turnos`, body).then(u),
+    client.post<any, SolicitudPublicaResponse>(`/public/empresas/${slug}/turnos`, body),
   // Link único por turno
   getTurnoPorToken: (token: string) =>
-    client.get<ApiResponse<Turno>>(`/public/turnos/${token}`).then(u),
+    client.get<any, Turno>(`/public/turnos/${token}`),
   aceptarCotizacion: (token: string) =>
-    client.post<ApiResponse<Turno>>(`/public/turnos/${token}/cotizacion/aceptar`).then(u),
+    client.post<any, Turno>(`/public/turnos/${token}/cotizacion/aceptar`),
   rechazarCotizacion: (token: string) =>
-    client.post<ApiResponse<Turno>>(`/public/turnos/${token}/cotizacion/rechazar`).then(u),
+    client.post<any, Turno>(`/public/turnos/${token}/cotizacion/rechazar`),
   cancelarTurno: (token: string, motivo?: string) =>
     client.delete(`/public/turnos/${token}`, { params: { motivo } }),
 }
 
 // Panel interno
 export const empresaApi = {
-  listar:          () => client.get<ApiResponse<PageResponse<Empresa>>>('/empresas').then(u),
-  obtener:         (id: string) => client.get<ApiResponse<Empresa>>(`/empresas/${id}`).then(u),
-  crear:           (b: Partial<Empresa>) => client.post<ApiResponse<Empresa>>('/empresas', b).then(u),
-  actualizar:      (id: string, b: Partial<Empresa>) => client.put<ApiResponse<Empresa>>(`/empresas/${id}`, b).then(u),
-  actualizarConfig:(id: string, c: Partial<EmpresaConfig>) => client.put<ApiResponse<Empresa>>(`/empresas/${id}/config`, c).then(u),
+  listar:          () => client.get<any, PageResponse<Empresa>>('/empresas'),
+  obtener:         (id: string) => client.get<any, Empresa>(`/empresas/${id}`),
+  crear:           (b: Partial<Empresa>) => client.post<any, Empresa>('/empresas', b),
+  actualizar:      (id: string, b: Partial<Empresa>) => client.put<any, Empresa>(`/empresas/${id}`, b),
+  actualizarConfig:(id: string, c: Partial<EmpresaConfig>) => client.put<any, Empresa>(`/empresas/${id}/config`, c),
 }
 
 export const servicioApi = {
-  listar:        (eid: string) => client.get<ApiResponse<PageResponse<Servicio>>>(`/empresas/${eid}/servicios`, { params: { size: 100 } }).then(u),
-  crear:         (eid: string, b: Partial<Servicio>) => client.post<ApiResponse<Servicio>>(`/empresas/${eid}/servicios`, b).then(u),
-  actualizar:    (eid: string, sid: string, b: Partial<Servicio>) => client.put<ApiResponse<Servicio>>(`/empresas/${eid}/servicios/${sid}`, b).then(u),
+  listar:        (eid: string) => client.get<any, PageResponse<Servicio>>(`/empresas/${eid}/servicios`, { params: { size: 100 } }),
+  crear:         (eid: string, b: Partial<Servicio>) => client.post<any, Servicio>(`/empresas/${eid}/servicios`, b),
+  actualizar:    (eid: string, sid: string, b: Partial<Servicio>) => client.put<any, Servicio>(`/empresas/${eid}/servicios/${sid}`, b),
   alternarEstado:(eid: string, sid: string, activo: boolean) => client.patch(`/empresas/${eid}/servicios/${sid}/estado`, null, { params: { activo } }),
+  eliminar:      (eid: string, sid: string) => client.delete(`/empresas/${eid}/servicios/${sid}`), // Nueva regla de Soft Delete
 }
 
 export const turnoApi = {
   listar:        (eid: string, p?: { estado?: TurnoEstado; fecha?: string; page?: number; size?: number }) =>
-                   client.get<ApiResponse<PageResponse<TurnoSummary>>>(`/empresas/${eid}/turnos`, { params: p }).then(u),
-  obtener:       (eid: string, tid: string) => client.get<ApiResponse<Turno>>(`/empresas/${eid}/turnos/${tid}`).then(u),
+                   client.get<any, PageResponse<TurnoSummary>>(`/empresas/${eid}/turnos`, { params: p }),
+  obtener:       (eid: string, tid: string) => client.get<any, Turno>(`/empresas/${eid}/turnos/${tid}`),
   cambiarEstado: (eid: string, tid: string, b: { nuevoEstado: TurnoEstado; observaciones?: string }) =>
-                   client.patch<ApiResponse<Turno>>(`/empresas/${eid}/turnos/${tid}/estado`, b).then(u),
+                   client.patch<any, Turno>(`/empresas/${eid}/turnos/${tid}/estado`, b),
   crearCotizacion:(eid: string, tid: string, b: object) =>
-                   client.post<ApiResponse<Turno>>(`/empresas/${eid}/turnos/${tid}/cotizacion`, b).then(u),
+                   client.post<any, Turno>(`/empresas/${eid}/turnos/${tid}/cotizacion`, b),
   actualizarCotizacion:(eid: string, tid: string, b: object) =>
-                   client.put<ApiResponse<Turno>>(`/empresas/${eid}/turnos/${tid}/cotizacion`, b).then(u),
+                   client.put<any, Turno>(`/empresas/${eid}/turnos/${tid}/cotizacion`, b),
   registrarSenia:(eid: string, tid: string, b: object) =>
-                   client.post<ApiResponse<Turno>>(`/empresas/${eid}/turnos/${tid}/senia`, b).then(u),
+                   client.post<any, Turno>(`/empresas/${eid}/turnos/${tid}/senia`, b),
   finalizar:     (eid: string, tid: string) =>
-                   client.post<ApiResponse<Turno>>(`/empresas/${eid}/turnos/${tid}/finalizar`).then(u),
+                   client.post<any, Turno>(`/empresas/${eid}/turnos/${tid}/finalizar`),
   reprogramar:   (eid: string, tid: string, b: object) =>
-                   client.put<ApiResponse<Turno>>(`/empresas/${eid}/turnos/${tid}/reprogramar`, b).then(u),
+                   client.put<any, Turno>(`/empresas/${eid}/turnos/${tid}/reprogramar`, b),
   cancelar:      (eid: string, tid: string, motivo?: string) =>
                    client.delete(`/empresas/${eid}/turnos/${tid}`, { params: { motivo } }),
 }
 
 export const agendaApi = {
   calendario:    (eid: string, fecha: string, vista = 'SEMANA') =>
-                   client.get<ApiResponse<{ fecha: string; turnos: TurnoSummary[]; bloqueos: Bloqueo[] }>>(`/empresas/${eid}/agenda/calendario`, { params: { fecha, vista } }).then(u),
-  crearBloqueo:  (eid: string, b: object) => client.post<ApiResponse<Bloqueo>>(`/empresas/${eid}/agenda/bloqueos`, b).then(u),
+                   client.get<any, { fecha: string; turnos: TurnoSummary[]; bloqueos: Bloqueo[] }>(`/empresas/${eid}/agenda/calendario`, { params: { fecha, vista } }),
+  crearBloqueo:  (eid: string, b: object) => client.post<any, Bloqueo>(`/empresas/${eid}/agenda/bloqueos`, b),
   eliminarBloqueo:(eid: string, bid: string) => client.delete(`/empresas/${eid}/agenda/bloqueos/${bid}`),
   disponibilidad:(eid: string, fecha: string, servicioId?: string) =>
-                   client.get<ApiResponse<{ fecha: string; slots: SlotDisponible[] }>>(`/empresas/${eid}/agenda/disponibilidad`, { params: { fecha, servicioId } }).then(u),
+                   client.get<any, { fecha: string; slots: SlotDisponible[] }>(`/empresas/${eid}/agenda/disponibilidad`, { params: { fecha, servicioId } }),
 }
 
 export const reporteApi = {
-  dashboard: (eid: string, p?: object) => client.get<ApiResponse<Dashboard>>(`/empresas/${eid}/reportes/dashboard`, { params: p }).then(u),
-  servicios:  (eid: string, p: object) => client.get<ApiResponse<ServicioStat[]>>(`/empresas/${eid}/reportes/servicios`, { params: p }).then(u),
+  dashboard: (eid: string, p?: object) => client.get<any, Dashboard>(`/empresas/${eid}/reportes/dashboard`, { params: p }),
+  servicios:  (eid: string, p: object) => client.get<any, ServicioStat[]>(`/empresas/${eid}/reportes/servicios`, { params: p }),
   exportar:   (eid: string, p: object) => client.get(`/empresas/${eid}/reportes/export`, { params: p, responseType: 'blob' }),
+}
+
+export const usuarioApi = {
+  listar: (eid: string) => client.get<any, PageResponse<any>>(`/empresas/${eid}/usuarios`),
+  crear: (eid: string, data: any) => client.post<any, any>(`/empresas/${eid}/usuarios`, data),
 }

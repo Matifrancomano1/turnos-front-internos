@@ -15,6 +15,7 @@ import AgendaPage       from '@/pages/panel/AgendaPage'
 import CotizacionesPage from '@/pages/panel/CotizacionesPage'
 import ReportesPage     from '@/pages/panel/ReportesPage'
 import ConfiguracionPage from '@/pages/panel/ConfiguracionPage'
+import UsuariosPage      from '@/pages/panel/UsuariosPage'
 
 // Public (no auth)
 import SolicitudPage    from '@/pages/public/SolicitudPage'
@@ -32,6 +33,11 @@ function Protected({ children }: { children: React.ReactNode }) {
 function Public({ children }: { children: React.ReactNode }) {
   const isAuth = useAuthStore(s => s.isAuth())
   return isAuth ? <Navigate to="/panel/dashboard" replace /> : <>{children}</>
+}
+
+function AdminOnly({ children }: { children: React.ReactNode }) {
+  const rol = useAuthStore(s => s.usuario?.rol)
+  return rol === 'ADMIN' ? <>{children}</> : <Navigate to="/panel/dashboard" replace />
 }
 
 export default function App() {
@@ -53,8 +59,9 @@ export default function App() {
             <Route path="turnos"       element={<TurnosPage />} />
             <Route path="agenda"       element={<AgendaPage />} />
             <Route path="cotizaciones" element={<CotizacionesPage />} />
-            <Route path="reportes"     element={<ReportesPage />} />
-            <Route path="configuracion" element={<ConfiguracionPage />} />
+            <Route path="reportes"     element={<AdminOnly><ReportesPage /></AdminOnly>} />
+            <Route path="usuarios"     element={<AdminOnly><UsuariosPage /></AdminOnly>} />
+            <Route path="configuracion" element={<AdminOnly><ConfiguracionPage /></AdminOnly>} />
           </Route>
 
           {/* ── Fallbacks ─────────────────────────────────────────────── */}

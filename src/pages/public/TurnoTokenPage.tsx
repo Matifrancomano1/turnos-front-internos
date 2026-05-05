@@ -184,8 +184,8 @@ export default function TurnoTokenPage() {
         )}
 
         {/* Datos del turno */}
-        <div style={{ background: '#fff', borderRadius: 'var(--radius-l)', border: '1px solid var(--gray-m)', overflow: 'hidden' }}
-          className="animate-fade-up" style={{ animationDelay: '.1s' } as any}>
+        <div style={{ background: '#fff', borderRadius: 'var(--radius-l)', border: '1px solid var(--gray-m)', overflow: 'hidden', animationDelay: '.1s' } as any}
+          className="animate-fade-up">
           <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--gray-m)', background: 'var(--gray-l)' }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-m)', textTransform: 'uppercase', letterSpacing: '.04em' }}>Detalle del turno</span>
           </div>

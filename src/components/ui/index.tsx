@@ -1,7 +1,7 @@
 // src/components/ui/index.tsx
 import { ESTADO_CLASS, ESTADO_LABEL, cn } from '@/lib/utils'
 import type { TurnoEstado } from '@/types'
-import { Loader2 } from 'lucide-react'
+import { Loader2, type LucideIcon } from 'lucide-react'
 
 export const EstadoBadge = ({ estado }: { estado: TurnoEstado }) => (
   <span className={`badge ${ESTADO_CLASS[estado]}`}>{ESTADO_LABEL[estado]}</span>
@@ -17,19 +17,43 @@ export const PageLoader = () => (
   </div>
 )
 
-export const EmptyState = ({ title, desc, icon }: { title: string; desc?: string; icon?: string }) => (
+export const EmptyState = ({
+  title,
+  desc,
+  icon: Icon,
+}: {
+  title: string
+  desc?: string
+  icon?: LucideIcon
+}) => (
   <div className="empty-state">
-    {icon && <div className="es-icon">{icon}</div>}
+    {Icon && (
+      <div className="es-icon-wrap">
+        <Icon size={22} strokeWidth={1.5} />
+      </div>
+    )}
     <h3>{title}</h3>
     {desc && <p>{desc}</p>}
   </div>
 )
 
-export const StatCard = ({ label, value, sub, icon, color = 'blue' }: {
-  label: string; value: string | number; sub?: string; icon: string; color?: 'blue' | 'green' | 'amber' | 'red'
+export const StatCard = ({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  color = 'blue',
+}: {
+  label: string
+  value: string | number
+  sub?: string
+  icon: LucideIcon
+  color?: 'blue' | 'green' | 'amber' | 'red'
 }) => (
   <div className={`stat-card ${color}`}>
-    <div style={{ position: 'absolute', right: 14, top: 14, fontSize: 22, opacity: .25 }}>{icon}</div>
+    <div className="stat-card-icon">
+      <Icon size={18} strokeWidth={1.75} />
+    </div>
     <div style={{ fontSize: 11, color: 'var(--text-m)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
     <div style={{ fontSize: 28, fontWeight: 700, margin: '4px 0', color: 'var(--text)' }}>{value}</div>
     {sub && <div style={{ fontSize: 11, color: 'var(--text-m)' }}>{sub}</div>}

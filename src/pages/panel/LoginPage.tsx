@@ -8,7 +8,7 @@ import { authApi } from '@/api/client'
 import { useAuthStore } from '@/store/auth'
 import { Spinner } from '@/components/ui'
 import { toast } from 'sonner'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, CalendarCheck } from 'lucide-react'
 
 const schema = z.object({ email: z.string().email(), password: z.string().min(1) })
 type F = z.infer<typeof schema>
@@ -25,21 +25,21 @@ export default function LoginPage() {
       setAuth(res.usuario, res.accessToken, res.refreshToken)
       nav('/panel/dashboard')
     } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? 'Credenciales incorrectas')
+      toast.error(e?.message ?? 'Credenciales incorrectas')
     }
   }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--navy-d)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       className="animate-fade-in">
-      {/* Grid pattern */}
+      {/* Subtle dot grid */}
       <div style={{ position: 'fixed', inset: 0, opacity: .04, backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '28px 28px', pointerEvents: 'none' }} />
 
       <div style={{ width: '100%', maxWidth: 380, position: 'relative' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, background: 'var(--blue)', borderRadius: 14, marginBottom: 16 }}>
-            <span style={{ fontSize: 24 }}>📅</span>
+            <CalendarCheck size={26} strokeWidth={1.75} color="#fff" />
           </div>
           <h1 style={{ color: '#fff', fontSize: 22, fontWeight: 700 }}>TurnoApp</h1>
           <p style={{ color: '#93C5FD', fontSize: 13, marginTop: 4 }}>Panel de gestión</p>

@@ -6,6 +6,7 @@ import { StatCard, PageLoader, EstadoBadge } from '@/components/ui'
 import { fmt$, fmtDate } from '@/lib/utils'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useNavigate } from 'react-router-dom'
+import { Download, CalendarDays, CheckCircle2, Clock, XCircle, BarChart3, Trophy } from 'lucide-react'
 
 export default function DashboardPage() {
   const { empresaId } = useAuthStore()
@@ -38,23 +39,29 @@ export default function DashboardPage() {
           <p style={{ color: 'var(--text-m)', fontSize: 13, marginTop: 2 }}>Resumen operativo — mes en curso</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => reporteApi.exportar(empresaId!, {})}>⬇ Exportar</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => reporteApi.exportar(empresaId!, {})}>
+            <Download size={13} strokeWidth={1.75} />
+            Exportar
+          </button>
         </div>
       </div>
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
-        <StatCard label="Turnos del Mes"     value={dash?.turnosMes ?? 0}       icon="📋" color="blue"  sub={`${dash?.turnosHoy ?? 0} hoy`} />
-        <StatCard label="Finalizados"        value={`${Math.round((1 - (dash?.tasaCancelacion ?? 0) / 100) * (dash?.turnosMes ?? 0))}`} icon="✅" color="green" sub="tasa de cierre" />
-        <StatCard label="Pendientes cotiz."  value={dash?.turnosCancelados ?? 0} icon="⏳" color="amber" sub="requieren acción" />
-        <StatCard label="Cancelaciones"      value={dash?.turnosCancelados ?? 0} icon="❌" color="red"   sub={`${dash?.tasaCancelacion?.toFixed(1) ?? 0}% tasa`} />
+        <StatCard label="Turnos del Mes"    value={dash?.turnosMes ?? 0}       icon={CalendarDays}   color="blue"  sub={`${dash?.turnosHoy ?? 0} hoy`} />
+        <StatCard label="Finalizados"       value={`${Math.round((1 - (dash?.tasaCancelacion ?? 0) / 100) * (dash?.turnosMes ?? 0))}`} icon={CheckCircle2} color="green" sub="tasa de cierre" />
+        <StatCard label="Pendientes cotiz." value={dash?.turnosCancelados ?? 0} icon={Clock}          color="amber" sub="requieren acción" />
+        <StatCard label="Cancelaciones"     value={dash?.turnosCancelados ?? 0} icon={XCircle}        color="red"   sub={`${dash?.tasaCancelacion?.toFixed(1) ?? 0}% tasa`} />
       </div>
 
       {/* Charts row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
         {/* Bar chart */}
         <div className="card">
-          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>📊 Turnos por Servicio</div>
+          <div className="card-title">
+            <BarChart3 size={15} strokeWidth={1.75} style={{ color: 'var(--blue)' }} />
+            Turnos por Servicio
+          </div>
           {barData.length === 0 ? (
             <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-l)', fontSize: 13 }}>Sin datos</div>
           ) : (
@@ -72,7 +79,10 @@ export default function DashboardPage() {
 
         {/* Top servicios */}
         <div className="card">
-          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>🏆 Top Servicios</div>
+          <div className="card-title">
+            <Trophy size={15} strokeWidth={1.75} style={{ color: 'var(--amber)' }} />
+            Top Servicios
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {(dash?.topServicios ?? []).slice(0, 4).map((s, i) => {
               const max = dash?.topServicios[0]?.cantidad ?? 1
@@ -82,7 +92,7 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
                     <span>{s.nombre}</span><span style={{ fontWeight: 700 }}>{s.cantidad}</span>
                   </div>
-                  <div style={{ height: 8, background: 'var(--gray-m)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ height: 6, background: 'var(--gray-m)', borderRadius: 4, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${(s.cantidad / max) * 100}%`, background: colors[i], borderRadius: 4, transition: '.5s' }} />
                   </div>
                 </div>
@@ -98,8 +108,11 @@ export default function DashboardPage() {
       {/* Últimos turnos */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <span style={{ fontSize: 14, fontWeight: 700 }}>📋 Últimos Turnos</span>
-          <button className="btn btn-ghost btn-sm" onClick={() => nav('/panel/turnos')}>Ver todos →</button>
+          <div className="card-title">
+            <CalendarDays size={15} strokeWidth={1.75} style={{ color: 'var(--blue)' }} />
+            Últimos Turnos
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={() => nav('/panel/turnos')}>Ver todos</button>
         </div>
         <table className="data-table">
           <thead>
