@@ -7,17 +7,22 @@ import { PageLoader } from '@/components/ui'
 import { fmt$, fmtDate, fmtDateTime, ESTADO_LABEL } from '@/lib/utils'
 import type { TurnoEstado } from '@/types'
 import { toast } from 'sonner'
-import { CheckCircle, XCircle, Clock, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  CheckCircle, XCircle, AlertTriangle, ChevronDown, ChevronUp,
+  Hourglass, FileText, BadgeDollarSign, CheckCircle2, CalendarCheck,
+  PartyPopper, XOctagon, Search, CalendarDays, User, Mail, Smartphone,
+  Wrench, Calendar, AlignLeft, type LucideIcon
+} from 'lucide-react'
 import { differenceInHours, parseISO } from 'date-fns'
 
-const ESTADO_INFO: Record<TurnoEstado, { label: string; color: string; bg: string; icon: string; desc: string }> = {
-  SOLICITADO:    { label: 'Solicitud recibida', color: '#92400E', bg: '#FEF3C7', icon: '⏳', desc: 'Estamos revisando tu solicitud. El operador te contactará pronto con una cotización.' },
-  EN_COTIZACION: { label: 'Preparando cotización', color: '#1E40AF', bg: '#DBEAFE', icon: '📝', desc: 'El operador está preparando tu cotización. Te notificaremos cuando esté lista.' },
-  COTIZADO:      { label: '¡Cotización lista!', color: '#5B21B6', bg: '#EDE9FE', icon: '💰', desc: 'Revisá la cotización y confirmá si querés continuar con el turno.' },
-  CONFIRMADO:    { label: 'Turno confirmado', color: '#065F46', bg: '#D1FAE5', icon: '✅', desc: 'Tu turno está confirmado. Te enviaremos recordatorios antes de la fecha.' },
-  PROGRAMADO:    { label: 'Turno programado', color: '#065F46', bg: '#D1FAE5', icon: '📅', desc: 'Tu turno está en la agenda. ¡Nos vemos el día indicado!' },
-  FINALIZADO:    { label: 'Servicio finalizado', color: '#374151', bg: '#F3F4F6', icon: '🎉', desc: '¡Gracias por confiar en nosotros! Esperamos que todo haya salido perfecto.' },
-  CANCELADO:     { label: 'Turno cancelado', color: '#991B1B', bg: '#FEE2E2', icon: '❌', desc: 'Este turno fue cancelado. Si necesitás podés solicitar uno nuevo.' },
+const ESTADO_INFO: Record<TurnoEstado, { label: string; color: string; bg: string; Icon: LucideIcon; desc: string }> = {
+  SOLICITADO:    { label: 'Solicitud recibida', color: '#92400E', bg: '#FEF3C7', Icon: Hourglass, desc: 'Estamos revisando tu solicitud. El operador te contactará pronto con una cotización.' },
+  EN_COTIZACION: { label: 'Preparando cotización', color: '#1E40AF', bg: '#DBEAFE', Icon: FileText, desc: 'El operador está preparando tu cotización. Te notificaremos cuando esté lista.' },
+  COTIZADO:      { label: '¡Cotización lista!', color: '#5B21B6', bg: '#EDE9FE', Icon: BadgeDollarSign, desc: 'Revisá la cotización y confirmá si querés continuar con el turno.' },
+  CONFIRMADO:    { label: 'Turno confirmado', color: '#065F46', bg: '#D1FAE5', Icon: CheckCircle2, desc: 'Tu turno está confirmado. Te enviaremos recordatorios antes de la fecha.' },
+  PROGRAMADO:    { label: 'Turno programado', color: '#065F46', bg: '#D1FAE5', Icon: CalendarCheck, desc: 'Tu turno está en la agenda. ¡Nos vemos el día indicado!' },
+  FINALIZADO:    { label: 'Servicio finalizado', color: '#374151', bg: '#F3F4F6', Icon: PartyPopper, desc: '¡Gracias por confiar en nosotros! Esperamos que todo haya salido perfecto.' },
+  CANCELADO:     { label: 'Turno cancelado', color: '#991B1B', bg: '#FEE2E2', Icon: XOctagon, desc: 'Este turno fue cancelado. Si necesitás podés solicitar uno nuevo.' },
 }
 
 export default function TurnoTokenPage() {
@@ -69,7 +74,7 @@ export default function TurnoTokenPage() {
 
   if (isError || !turno) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-      <div style={{ fontSize: 48 }}>🔍</div>
+      <div><Search size={48} strokeWidth={1.5} color="var(--text-l)" /></div>
       <h2 style={{ fontSize: 18, fontWeight: 700 }}>Turno no encontrado</h2>
       <p style={{ color: 'var(--text-m)', fontSize: 14 }}>El link puede ser inválido o haber expirado</p>
     </div>
@@ -87,7 +92,9 @@ export default function TurnoTokenPage() {
       {/* Header */}
       <div style={{ background: 'var(--navy)' }}>
         <div style={{ maxWidth: 600, margin: '0 auto', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📅</div>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CalendarDays size={18} strokeWidth={1.75} color="#fff" />
+          </div>
           <div>
             <h1 style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>Mi Turno</h1>
             <p style={{ color: '#93C5FD', fontSize: 11 }}>Seguimiento de tu solicitud</p>
@@ -101,7 +108,7 @@ export default function TurnoTokenPage() {
         <div style={{ background: estadoInfo.bg, borderRadius: 'var(--radius-l)', padding: 20, border: `1px solid ${estadoInfo.color}30` }}
           className="animate-fade-up">
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-            <div style={{ fontSize: 36, flexShrink: 0 }}>{estadoInfo.icon}</div>
+            <div style={{ color: estadoInfo.color, flexShrink: 0 }}><estadoInfo.Icon size={36} strokeWidth={1.5} /></div>
             <div>
               <h2 style={{ fontSize: 17, fontWeight: 700, color: estadoInfo.color }}>{estadoInfo.label}</h2>
               <p style={{ fontSize: 13, color: estadoInfo.color, opacity: .85, marginTop: 4 }}>{estadoInfo.desc}</p>
@@ -113,7 +120,9 @@ export default function TurnoTokenPage() {
         {turno.estado === 'COTIZADO' && turno.cotizacion && (
           <div style={{ background: '#fff', borderRadius: 'var(--radius-l)', border: '2px solid var(--blue)', padding: 20 }}
             className="animate-scale-in">
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-m)', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 14 }}>💰 Tu cotización</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-m)', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <BadgeDollarSign size={15} strokeWidth={1.75} /> Tu cotización
+            </div>
 
             <div style={{ background: 'var(--navy)', borderRadius: 10, padding: 16, color: '#fff', textAlign: 'center', marginBottom: 14 }}>
               <div style={{ fontSize: 10, color: '#93C5FD', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Precio del servicio</div>
@@ -123,7 +132,7 @@ export default function TurnoTokenPage() {
 
             {turno.cotizacion.fechaPropuesta && (
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gray-m)', fontSize: 13, marginBottom: 8 }}>
-                <span style={{ color: 'var(--text-m)' }}>📅 Fecha propuesta</span>
+                <span style={{ color: 'var(--text-m)', display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={13} strokeWidth={1.75} /> Fecha propuesta</span>
                 <span style={{ fontWeight: 600 }}>{fmtDate(turno.cotizacion.fechaPropuesta)} · {turno.cotizacion.horaPropuesta?.slice(0,5)}</span>
               </div>
             )}
@@ -191,17 +200,17 @@ export default function TurnoTokenPage() {
           </div>
           <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              ['👤 Cliente', turno.cliente.nombre],
-              ['📧 Email', turno.cliente.email],
-              turno.cliente.whatsapp ? ['📱 WhatsApp', turno.cliente.whatsapp] : null,
-              ['🔧 Servicio', turno.servicio.nombre],
-              ['📅 Fecha solicitada', `${fmtDate(turno.fechaSolicitada)} · ${turno.horaSolicitada?.slice(0,5)}`],
-              turno.fechaConfirmada ? ['✅ Fecha confirmada', `${fmtDate(turno.fechaConfirmada)} · ${turno.horaConfirmada?.slice(0,5)}`] : null,
-              turno.descripcion ? ['📝 Descripción', turno.descripcion] : null,
+              [<><User size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }}/> Cliente</>, turno.cliente.nombre],
+              [<><Mail size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }}/> Email</>, turno.cliente.email],
+              turno.cliente.whatsapp ? [<><Smartphone size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }}/> WhatsApp</>, turno.cliente.whatsapp] : null,
+              [<><Wrench size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }}/> Servicio</>, turno.servicio.nombre],
+              [<><Calendar size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }}/> Fecha solicitada</>, `${fmtDate(turno.fechaSolicitada)} · ${turno.horaSolicitada?.slice(0,5)}`],
+              turno.fechaConfirmada ? [<><CheckCircle2 size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }}/> Fecha confirmada</>, `${fmtDate(turno.fechaConfirmada)} · ${turno.horaConfirmada?.slice(0,5)}`] : null,
+              turno.descripcion ? [<><AlignLeft size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }}/> Descripción</>, turno.descripcion] : null,
             ].filter(Boolean).map((row, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '5px 0', borderBottom: '1px solid var(--gray-m)' }}>
-                <span style={{ color: 'var(--text-m)' }}>{(row as string[])[0]}</span>
-                <span style={{ fontWeight: 600, textAlign: 'right', maxWidth: '60%' }}>{(row as string[])[1]}</span>
+                <span style={{ color: 'var(--text-m)' }}>{(row as [React.ReactNode, React.ReactNode])[0]}</span>
+                <span style={{ fontWeight: 600, textAlign: 'right', maxWidth: '60%' }}>{(row as [React.ReactNode, React.ReactNode])[1]}</span>
               </div>
             ))}
           </div>

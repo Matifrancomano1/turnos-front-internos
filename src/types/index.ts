@@ -1,5 +1,5 @@
 // src/types/index.ts
-export type Rol = 'CLIENTE' | 'OPERADOR' | 'ADMIN'
+export type Rol = 'CLIENTE' | 'OPERADOR' | 'ADMIN' | 'SUPER_ADMIN'
 
 export type TurnoEstado =
   | 'SOLICITADO' | 'EN_COTIZACION' | 'COTIZADO'
@@ -15,6 +15,12 @@ export interface LoginRequest { email: string; password: string }
 // ── Empresa ───────────────────────────────────────────────────────────────────
 export interface EmpresaConfig { horaApertura: string; horaCierre: string; duracionSlotMinutos: number; sabadoHabilitado: boolean; domingoHabilitado: boolean }
 export interface Empresa { id: string; nombre: string; slug: string; emailContacto: string; direccion: string; telefono: string; config: EmpresaConfig; activa: boolean; creadoEn: string }
+export interface EmpresaCreateMaster { 
+  nombre: string; 
+  slug: string; 
+  emailAdmin: string; 
+  passwordAdmin: string; 
+}
 
 // ── Servicio ──────────────────────────────────────────────────────────────────
 export interface Servicio { id: string; nombre: string; descripcion?: string; precioBase: number; duracionEstimadaMinutos: number; activo: boolean }
@@ -71,3 +77,51 @@ export interface Dashboard { turnosHoy: number; turnosMes: number; turnosCancela
 export interface ApiResponse<T> { status: string; message?: string; data: T; timestamp: string }
 export interface ErrorResponse { error: string; message: string; fields?: Record<string, string>; timestamp: string }
 export interface PageResponse<T> { content: T[]; page: number; size: number; totalElements: number; totalPages: number; last: boolean }
+
+// ── SuperAdmin ────────────────────────────────────────────────────────────────
+export interface SuperAdminEmpresaResponse {
+  id: string
+  nombre: string
+  slug: string
+  emailContacto?: string | null
+  telefono?: string | null
+  activa: boolean
+  createdAt: string
+  totalUsuarios: number
+}
+
+export interface SuperAdminStatsResponse {
+  totalEmpresas: number
+  totalUsuarios: number
+  totalTurnos: number
+}
+
+export interface CreateTenantAdminRequest {
+  empresaNombre: string
+  empresaSlug: string
+  empresaEmail: string
+  adminNombre: string
+  adminEmail: string
+  adminPassword: string
+}
+
+export interface ImpersonationResponse {
+  token: string
+  expiresIn: number
+  empresaId: string
+}
+
+export interface SuperAdminConfigResponse {
+  platformName: string
+  baseDomain: string
+  supportEmail: string
+  defaultMaxUsers: number
+  defaultMaxTurnosMensuales: number
+  allowTrial: boolean
+  trialDays: number
+  smtpHost: string
+  smtpPort: number
+  smtpUser: string
+  smtpPass: string
+  smtpFrom: string
+}

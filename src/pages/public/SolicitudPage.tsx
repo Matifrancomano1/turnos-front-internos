@@ -11,7 +11,11 @@ import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import type { Servicio, SlotDisponible } from '@/types'
 import { Spinner } from '@/components/ui'
-import { CheckCircle, ChevronRight, ChevronLeft, Calendar, Clock, User, MessageSquare } from 'lucide-react'
+import {
+  CheckCircle, ChevronRight, ChevronLeft, Calendar, Clock, User,
+  MessageSquare, Wrench, Search, CalendarDays, Upload, Smartphone,
+  HelpCircle, CheckCircle2, Check
+} from 'lucide-react'
 
 const schema = z.object({
   nombreCliente: z.string().min(2, 'Mínimo 2 caracteres'),
@@ -25,10 +29,10 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 const STEPS = [
-  { num: 1, label: 'Servicio', icon: '🔧' },
-  { num: 2, label: 'Fecha y hora', icon: '📅' },
-  { num: 3, label: 'Tus datos', icon: '👤' },
-  { num: 4, label: 'Confirmación', icon: '✅' },
+  { num: 1, label: 'Servicio', Icon: Wrench },
+  { num: 2, label: 'Fecha y hora', Icon: CalendarDays },
+  { num: 3, label: 'Tus datos', Icon: User },
+  { num: 4, label: 'Confirmación', Icon: CheckCircle2 },
 ]
 
 export default function SolicitudPage() {
@@ -109,7 +113,7 @@ export default function SolicitudPage() {
   if (isError || !empresa) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-        <div style={{ fontSize: 48 }}>😕</div>
+        <div><Search size={48} strokeWidth={1.5} color="var(--text-l)" /></div>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>Empresa no encontrada</h2>
         <p style={{ color: 'var(--text-m)', fontSize: 14 }}>Verificá que el link sea correcto</p>
       </div>
@@ -119,9 +123,11 @@ export default function SolicitudPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--gray-l)' }}>
       {/* Header */}
-      <div style={{ background: 'var(--navy)', padding: '0 20px' }}>
-        <div style={{ maxWidth: 680, margin: '0 auto', padding: '16px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📅</div>
+      <div style={{ background: 'var(--navy)' }}>
+        <div style={{ maxWidth: 680, margin: '0 auto', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CalendarDays size={18} strokeWidth={1.75} color="#fff" />
+          </div>
           <div>
             <h1 style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>{empresa.nombre}</h1>
             <p style={{ color: '#93C5FD', fontSize: 12 }}>Solicitá tu turno online</p>
@@ -137,7 +143,7 @@ export default function SolicitudPage() {
               <div key={s.num} style={{ display: 'flex', alignItems: 'center', flex: i < 2 ? 1 : 0 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                   <div className={`step-circle ${step > s.num ? 'done' : step === s.num ? 'active' : ''} ${step > s.num ? 'animate-step-done' : ''}`}>
-                    {step > s.num ? '✓' : s.num}
+                    {step > s.num ? <Check size={16} strokeWidth={2.5} /> : s.num}
                   </div>
                   <span style={{ fontSize: 10, fontWeight: 600, color: step === s.num ? 'var(--blue)' : step > s.num ? 'var(--green)' : 'var(--text-l)', textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap' }}>
                     {s.label}
@@ -163,8 +169,8 @@ export default function SolicitudPage() {
                   {(servicios ?? []).filter(s => s.activo).map(s => (
                     <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 16, background: '#fff', borderRadius: 'var(--radius-l)', border: `2px solid ${watchServicioId === s.id ? 'var(--blue)' : 'var(--gray-m)'}`, cursor: 'pointer', transition: '.15s' }}>
                       <input {...register('servicioId')} type="radio" value={s.id} style={{ display: 'none' }} />
-                      <div style={{ width: 42, height: 42, borderRadius: 10, background: watchServicioId === s.id ? 'var(--blue)' : 'var(--gray-l)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0, transition: '.15s' }}>
-                        🔧
+                      <div style={{ width: 42, height: 42, borderRadius: 10, background: watchServicioId === s.id ? 'var(--blue)' : 'var(--gray-l)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: '.15s' }}>
+                        <Wrench size={20} strokeWidth={1.5} color={watchServicioId === s.id ? '#fff' : 'var(--text-l)'} />
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>{s.nombre}</div>
@@ -317,20 +323,21 @@ export default function SolicitudPage() {
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--blue)', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Resumen de tu solicitud</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: 'var(--text-m)' }}>🔧 Servicio</span>
+                    <span style={{ color: 'var(--text-m)', display: 'flex', alignItems: 'center', gap: 6 }}><Wrench size={13} /> Servicio</span>
                     <span style={{ fontWeight: 600 }}>{selectedServicio?.nombre}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: 'var(--text-m)' }}>📅 Fecha preferida</span>
+                    <span style={{ color: 'var(--text-m)', display: 'flex', alignItems: 'center', gap: 6 }}><CalendarDays size={13} /> Fecha preferida</span>
                     <span style={{ fontWeight: 600 }}>{watchFecha ? format(new Date(watchFecha + 'T00:00:00'), "d 'de' MMMM", { locale: es }) : '—'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: 'var(--text-m)' }}>⏰ Horario preferido</span>
+                    <span style={{ color: 'var(--text-m)', display: 'flex', alignItems: 'center', gap: 6 }}><Clock size={13} /> Horario preferido</span>
                     <span style={{ fontWeight: 600 }}>{watchHora?.slice(0, 5)}</span>
                   </div>
                 </div>
-                <div style={{ marginTop: 10, padding: '8px 10px', background: 'rgba(37,99,235,.06)', borderRadius: 6, fontSize: 12, color: '#1E40AF' }}>
-                  💡 El operador confirmará la fecha y hora final luego de revisar tu solicitud.
+                <div style={{ marginTop: 10, padding: '8px 10px', background: 'rgba(37,99,235,.06)', borderRadius: 6, fontSize: 12, color: '#1E40AF', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                  <HelpCircle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                  El operador confirmará la fecha y hora final luego de revisar tu solicitud.
                 </div>
               </div>
 
@@ -338,8 +345,8 @@ export default function SolicitudPage() {
                 <button type="button" className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(2)}>
                   <ChevronLeft size={16} /> Atrás
                 </button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 2, justifyContent: 'center', padding: '12px 0' }} disabled={isSubmitting}>
-                  {isSubmitting ? <><Spinner className="w-4 h-4 text-white" /> Enviando…</> : <>📤 Solicitar turno</>}
+                <button type="submit" className="btn btn-primary" style={{ flex: 2, justifyContent: 'center', padding: '12px 0', gap: 8 }} disabled={isSubmitting}>
+                  {isSubmitting ? <><Spinner className="w-4 h-4 text-white" /> Enviando…</> : <><Upload size={16} /> Solicitar turno</>}
                 </button>
               </div>
             </div>
@@ -348,8 +355,8 @@ export default function SolicitudPage() {
           {/* Step 4: Success */}
           {step === 4 && submitted && (
             <div className="animate-scale-in" style={{ textAlign: 'center' }}>
-              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--green-l)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 36 }}>
-                ✅
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--green-l)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                <CheckCircle2 size={36} color="var(--green)" />
               </div>
               <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>¡Solicitud enviada!</h2>
               <p style={{ fontSize: 14, color: 'var(--text-m)', marginBottom: 24, maxWidth: 420, margin: '0 auto 24px' }}>
@@ -371,7 +378,9 @@ export default function SolicitudPage() {
               </div>
 
               <div style={{ background: 'var(--amber-l)', borderRadius: 'var(--radius-l)', padding: 16, marginBottom: 24, maxWidth: 420, margin: '0 auto 24px', textAlign: 'left' }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#92400E', marginBottom: 4 }}>📱 Guardá este link</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#92400E', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Smartphone size={14} /> Guardá este link
+                </div>
                 <div style={{ fontSize: 12, color: '#92400E' }}>
                   Te enviamos un link único por WhatsApp y email para que puedas ver el estado de tu turno, la cotización y cancelar si necesitás.
                 </div>

@@ -1,12 +1,15 @@
 // src/api/client.ts
 import axios from 'axios'
 import type { ErrorResponse } from '@/types'
+import { useAuthStore } from '@/store/auth'
+import { queryClient } from '@/lib/queryClient'
 
 const BASE = import.meta.env.VITE_API_URL ?? '/api/v1'
 
 export const client = axios.create({ 
   baseURL: BASE, 
-  headers: { 'Content-Type': 'application/json' } 
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 10_000
 })
 
 // ── 1. Interceptor de Petición (Inyección de Token y TenantGuard) ─────────────
@@ -35,7 +38,11 @@ client.interceptors.response.use(
     }
 
     const status = error.response.status
-    const errorData = error.response.data as ErrorResponse
+
+    // MEJORA: Fallback defensivo por si el backend no devuelve ErrorResponse estructurado
+    const errorData: ErrorResponse = error.response.data?.message
+      ? (error.response.data as ErrorResponse)
+      : { message: 'Ocurrió un error inesperado.' }
 
     // REGLA 3: Refresh Token Automático
     if (status === 401 && !orig._retry && orig.url !== '/auth/login' && orig.url !== '/auth/refresh') {
@@ -52,13 +59,15 @@ client.interceptors.response.use(
           
           return client(orig)
         } catch (refreshErr) {
-          localStorage.clear()
-          window.location.href = '/panel/login'
-          return Promise.reject(errorData)
+          useAuthStore.getState().logout()
+          queryClient.clear()
+          window.location.href = '/panel/login?sesion_expirada=true'
+          return Promise.reject({ message: 'Sesión expirada. Por favor ingresá nuevamente.' } as ErrorResponse)
         }
       } else {
-        localStorage.clear()
-        window.location.href = '/panel/login'
+        useAuthStore.getState().logout()
+        queryClient.clear()
+        window.location.href = '/panel/login?sesion_expirada=true'
       }
     }
 
@@ -76,6 +85,7 @@ import type {
   Bloqueo, SlotDisponible,
   Dashboard, ServicioStat,
   SolicitudPublicaRequest, SolicitudPublicaResponse,
+  EmpresaCreateMaster
 } from '@/types'
 
 // Auth
@@ -96,7 +106,6 @@ export const publicApi = {
     client.get<any, { fecha: string; slots: SlotDisponible[] }>(`/public/empresas/${slug}/disponibilidad`, { params: { fecha, servicioId } }),
   solicitarTurno: (slug: string, body: SolicitudPublicaRequest) =>
     client.post<any, SolicitudPublicaResponse>(`/public/empresas/${slug}/turnos`, body),
-  // Link único por turno
   getTurnoPorToken: (token: string) =>
     client.get<any, Turno>(`/public/turnos/${token}`),
   aceptarCotizacion: (token: string) =>
@@ -121,7 +130,7 @@ export const servicioApi = {
   crear:         (eid: string, b: Partial<Servicio>) => client.post<any, Servicio>(`/empresas/${eid}/servicios`, b),
   actualizar:    (eid: string, sid: string, b: Partial<Servicio>) => client.put<any, Servicio>(`/empresas/${eid}/servicios/${sid}`, b),
   alternarEstado:(eid: string, sid: string, activo: boolean) => client.patch(`/empresas/${eid}/servicios/${sid}/estado`, null, { params: { activo } }),
-  eliminar:      (eid: string, sid: string) => client.delete(`/empresas/${eid}/servicios/${sid}`), // Nueva regla de Soft Delete
+  eliminar:      (eid: string, sid: string) => client.delete(`/empresas/${eid}/servicios/${sid}`),
 }
 
 export const turnoApi = {
@@ -162,4 +171,10 @@ export const reporteApi = {
 export const usuarioApi = {
   listar: (eid: string) => client.get<any, PageResponse<any>>(`/empresas/${eid}/usuarios`),
   crear: (eid: string, data: any) => client.post<any, any>(`/empresas/${eid}/usuarios`, data),
+}
+
+export const masterApi = {
+  listarEmpresas: () => client.get<any, PageResponse<Empresa>>('/master/empresas'),
+  crearEmpresa:   (data: EmpresaCreateMaster) => client.post<any, Empresa>('/master/empresas', data),
+  getMetricas:    () => client.get<any, any>('/master/metricas'),
 }

@@ -23,6 +23,8 @@ export function useUpdateConfigEmpresa(empresaId: string) {
     onSuccess: () => {
       toast.success('Configuración guardada correctamente')
       qc.invalidateQueries({ queryKey: ['empresa', empresaId] })
+      qc.invalidateQueries({ queryKey: ['empresas'] })
+      qc.invalidateQueries({ queryKey: ['superadmin-empresas'] })
     },
     onError: (err: any) => {
       const msg =
@@ -42,6 +44,8 @@ export function useUpdateEmpresa(empresaId: string) {
     onSuccess: () => {
       toast.success('Datos guardados correctamente')
       qc.invalidateQueries({ queryKey: ['empresa', empresaId] })
+      qc.invalidateQueries({ queryKey: ['empresas'] })
+      qc.invalidateQueries({ queryKey: ['superadmin-empresas'] })
     },
     onError: (err: any) => {
       // Regla 2: Manejo de 409 Conflict para el campo Slug

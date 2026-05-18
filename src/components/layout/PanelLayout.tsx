@@ -14,8 +14,10 @@ import {
   LogOut,
   Link2,
   Bell,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react'
+import { queryClient } from '@/lib/queryClient'
 
 type NavItem = {
   to: string
@@ -36,19 +38,21 @@ const navItems: NavItem[] = [
 ]
 
 export default function PanelLayout() {
-  const { usuario, logout, refreshToken } = useAuthStore()
+  const { usuario, logout, refreshToken, impersonate } = useAuthStore()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
     if (refreshToken) try { await authApi.logout(refreshToken) } catch { /* ignore */ }
     logout()
+    queryClient.clear()
     navigate('/panel/login')
   }
 
   const initials = usuario?.nombre?.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() ?? 'OP'
 
-  const mainItems = navItems.slice(0, 4).filter(i => !i.roles || i.roles.includes(usuario?.rol as string))
-  const adminItems = navItems.slice(4).filter(i => !i.roles || i.roles.includes(usuario?.rol as string))
+  const isSuperAdmin = usuario?.rol === 'SUPER_ADMIN'
+  const mainItems = navItems.slice(0, 4).filter(i => i.roles.includes(usuario?.rol as string) || isSuperAdmin)
+  const adminItems = navItems.slice(4).filter(i => i.roles.includes(usuario?.rol as string) || isSuperAdmin)
 
   return (
     <div className="panel-layout">
@@ -85,7 +89,7 @@ export default function PanelLayout() {
             ))}
           </div>
 
-          {usuario?.rol === 'ADMIN' && adminItems.length > 0 && (
+          {(usuario?.rol === 'ADMIN' || isSuperAdmin) && adminItems.length > 0 && (
             <div className="nav-section">
               <div className="nav-section-label">Gestión</div>
               {adminItems.map(({ to, icon: Icon, label, badge }) => (
@@ -111,6 +115,20 @@ export default function PanelLayout() {
 
       {/* ── Main ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Impersonation Banner */}
+        {isSuperAdmin && (
+          <div className="impersonation-banner">
+            <ShieldCheck size={14} /> 
+            Modo Gestión: Estás administrando una empresa como SuperAdmin
+            <button 
+              onClick={() => { impersonate(null); navigate('/master/empresas') }}
+              style={{ marginLeft: 'auto', background: 'rgba(0,0,0,0.2)', border: 'none', color: '#fff', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 10, fontWeight: 700 }}
+            >
+              VOLVER A MASTER
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <header className="panel-header">
           <div style={{ flex: 1 }} />

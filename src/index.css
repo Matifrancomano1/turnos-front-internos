@@ -389,4 +389,61 @@
   .fc .fc-timegrid-slot { height: 44px; }
   .fc .fc-timegrid-slot-label { font-size: 11px; color: var(--text-l); }
   .fc .fc-daygrid-day-number { font-size: 12px; color: var(--text-m); }
+
+  /* ── Master Theme (SuperAdmin) ────────────────────────────────────────── */
+  .master-theme {
+    --navy: #0F172A;
+    --blue: #38BDF8;
+    --ice: #F0F9FF;
+    --gray-l: #1E293B;
+    --gray-m: #334155;
+    --text: #F1F5F9;
+    --text-m: #CBD5E1;
+    --text-l: #94A3B8;
+    --bg-panel: #0F172A;
+    --bg-sidebar: #020617;
+    --border-subtle: rgba(255,255,255,0.05);
+  }
+
+  .master-theme .panel-container { background: var(--bg-panel); color: var(--text); }
+  .master-theme .sidebar {
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--gray-m);
+  }
+  .master-theme .sidebar-nav-item { color: var(--text-m); }
+  .master-theme .sidebar-nav-item:hover { background: var(--gray-l); color: var(--blue); }
+  .master-theme .sidebar-nav-item.active { background: var(--gray-l); color: var(--blue); }
+  
+  .master-theme .header {
+    background: rgba(15, 23, 42, 0.8);
+    border-bottom: 1px solid var(--gray-m);
+  }
+  
+  .master-theme .card, .master-theme .stat-card, .master-theme .table-wrap {
+    background: #1E293B;
+    border-color: var(--gray-m);
+  }
+  
+  .master-theme .data-table thead th { background: #0F172A; border-color: var(--gray-m); }
+  .master-theme .data-table td { color: var(--text-m); }
+  .master-theme .data-table tbody tr:hover { background: rgba(56, 189, 248, 0.04); }
+  
+  .master-theme .form-input { background: #0F172A; border-color: var(--gray-m); color: #fff; }
+  .master-theme .modal { background: #1E293B; border: 1px solid var(--gray-m); }
+  
+  /* Impersonation Banner */
+  .impersonation-banner {
+    background: #7C3AED;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: .05em;
+  }
 }
+

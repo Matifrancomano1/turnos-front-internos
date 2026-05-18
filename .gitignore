@@ -3,3 +3,5 @@ guia-frontend.md
 guia-api.md
 .claudeignore
 .claude
+vite.config.ts
+.gitignore
