@@ -445,5 +445,45 @@
     gap: 8px;
     letter-spacing: .05em;
   }
+
+  /* ── Form Validation UI Enhancement ──────────────────────────────────── */
+  .form-input.error {
+    border-color: var(--red) !important;
+    background-color: #FEF2F2 !important; /* sutil fondo rojizo */
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+  }
+
+  .form-input.success-val {
+    border-color: var(--green) !important;
+    background-color: #F0FDF4 !important; /* sutil fondo verdoso */
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1) !important;
+  }
+
+  /* Micro-animación Shake para Inputs Fallidos en Submit */
+  @keyframes inputShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  .input-shake {
+    animation: inputShake 0.25s ease-in-out;
+  }
+
+  /* Tooltip Informativo de Ayuda en tiempo real */
+  .form-tooltip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--blue-xl);
+    color: var(--blue);
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    font-size: 11.5px;
+    margin-top: 6px;
+    border: 1px solid rgba(37, 99, 235, 0.15);
+    font-weight: 500;
+    line-height: 1.4;
+  }
 }
 

@@ -5,3 +5,6 @@ guia-api.md
 .claude
 vite.config.ts
 .gitignore
+validation_ux_guide.md
+package-lock.json
+package.json

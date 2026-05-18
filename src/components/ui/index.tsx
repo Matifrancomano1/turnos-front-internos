@@ -59,3 +59,5 @@ export const StatCard = ({
     {sub && <div style={{ fontSize: 11, color: 'var(--text-m)' }}>{sub}</div>}
   </div>
 )
+
+export { DangerZoneModal } from './DangerZoneModal'
